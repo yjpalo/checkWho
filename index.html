@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>임원 국내연수 출석체크</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+  :root{
+    --green-900:#0f3d2e;
+    --green-700:#1a5e43;
+    --green-600:#21744f;
+    --green-500:#2c8f63;
+    --green-100:#e3f1ea;
+    --amber:#c98a16;
+    --amber-bg:#fbf2dc;
+    --red:#b5403a;
+    --red-bg:#f8e4e3;
+    --gray:#8a9490;
+    --gray-bg:#eef1f0;
+    --ink:#16211d;
+    --ink-soft:#4a5650;
+    --paper:#f6f4ef;
+    --card:#ffffff;
+    --line:#e1e5e2;
+    --shadow:0 1px 2px rgba(15,61,46,.05),0 6px 20px rgba(15,61,46,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 100% -10%, rgba(44,143,99,.08), transparent 60%),
+      radial-gradient(900px 400px at -10% 0%, rgba(15,61,46,.06), transparent 55%),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:18px 16px 120px;}
+
+  /* ===== Header ===== */
+  header.app{
+    background:linear-gradient(135deg,var(--green-900),var(--green-700));
+    color:#fff;border-radius:18px;padding:22px 22px 20px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  header.app::after{
+    content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+    background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%);
+  }
+  .brand{font-size:12px;letter-spacing:.18em;font-weight:600;opacity:.78;text-transform:uppercase;}
+  .title-edit{
+    font-size:22px;font-weight:800;line-height:1.25;margin-top:6px;width:100%;
+    background:transparent;border:none;color:#fff;outline:none;border-bottom:1.5px dashed rgba(255,255,255,.28);
+    padding:4px 0;
+  }
+  .title-edit::placeholder{color:rgba(255,255,255,.5);}
+  .meta-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .meta-field{flex:1;min-width:130px;}
+  .meta-field label{display:block;font-size:11px;opacity:.7;margin-bottom:3px;letter-spacing:.04em;}
+  .meta-field input{
+    width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+    color:#fff;border-radius:9px;padding:8px 10px;font-size:13.5px;outline:none;font-family:inherit;
+  }
+  .meta-field input::placeholder{color:rgba(255,255,255,.55);}
+
+  /* ===== Stats ===== */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+  .stat{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 8px;text-align:center;box-shadow:var(--shadow);
+  }
+  .stat .num{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+  .stat .lbl{font-size:11.5px;color:var(--ink-soft);margin-top:5px;font-weight:600;}
+  .stat.t-all .num{color:var(--green-900);}
+  .stat.t-present .num{color:var(--green-600);}
+  .stat.t-late .num{color:var(--amber);}
+  .stat.t-absent .num{color:var(--red);}
+  .progress{height:7px;border-radius:99px;background:var(--gray-bg);margin-top:14px;overflow:hidden;}
+  .progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green-500),var(--green-700));transition:width .35s ease;}
+
+  /* ===== Toolbar ===== */
+  .toolbar{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+  .search{flex:1;min-width:160px;position:relative;}
+  .search input{
+    width:100%;padding:11px 12px 11px 36px;border:1px solid var(--line);border-radius:11px;
+    font-size:14px;outline:none;background:var(--card);font-family:inherit;
+  }
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:11px 14px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;
+    font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--green-500);color:var(--green-700);}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:var(--green-700);color:#fff;border-color:var(--green-700);}
+  .btn.primary:hover{background:var(--green-600);color:#fff;}
+
+  /* ===== List ===== */
+  .list{margin-top:14px;display:flex;flex-direction:column;gap:9px;}
+  .person{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 13px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .person.s-present{border-left:5px solid var(--green-500);}
+  .person.s-late{border-left:5px solid var(--amber);}
+  .person.s-absent{border-left:5px solid var(--red);}
+  .person.s-none{border-left:5px solid var(--line);}
+  .avatar{
+    width:42px;height:42px;flex-shrink:0;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;background:var(--green-100);color:var(--green-700);
+  }
+  .pinfo{flex:1;min-width:0;}
+  .pname{font-size:16px;font-weight:700;line-height:1.2;}
+  .psub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;}
+  .ptag{background:var(--gray-bg);padding:1px 8px;border-radius:99px;font-weight:600;}
+  .seg{display:flex;gap:5px;flex-shrink:0;}
+  .seg button{
+    border:1.5px solid var(--line);background:#fff;border-radius:10px;width:46px;height:44px;
+    cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;color:var(--gray);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .12s;
+  }
+  .seg button .ico{font-size:16px;line-height:1;}
+  .seg button:active{transform:scale(.92);}
+  .seg button.on.p{background:var(--green-600);border-color:var(--green-600);color:#fff;}
+  .seg button.on.l{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .seg button.on.a{background:var(--red);border-color:var(--red);color:#fff;}
+  .row-del{
+    border:none;background:transparent;color:var(--gray);cursor:pointer;font-size:18px;
+    padding:6px;border-radius:8px;flex-shrink:0;line-height:1;
+  }
+  .row-del:hover{color:var(--red);background:var(--red-bg);}
+
+  .empty{text-align:center;padding:48px 20px;color:var(--ink-soft);}
+  .empty .big{font-size:40px;margin-bottom:8px;}
+  .empty p{margin:4px 0;font-size:14px;}
+
+  /* ===== Bottom bar ===== */
+  .actionbar{
+    position:fixed;left:0;right:0;bottom:0;background:rgba(246,244,239,.92);
+    backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 16px;
+    display:flex;gap:8px;justify-content:center;z-index:30;
+  }
+  .actionbar .inner{max-width:880px;width:100%;display:flex;gap:8px;}
+  .actionbar .btn{flex:1;justify-content:center;padding:13px 10px;}
+
+  /* ===== Modal ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,33,29,.45);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+  .mask.open{display:flex;}
+  .modal{
+    background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
+    animation:slideup .25s ease;
+  }
+  @media(min-width:600px){.mask{align-items:center;}.modal{border-radius:20px;}}
+  @keyframes slideup{from{transform:translateY(40px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
+  .modal h3{margin:0 0 4px;font-size:19px;font-weight:800;}
+  .modal .desc{font-size:13px;color:var(--ink-soft);margin:0 0 16px;line-height:1.5;}
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px;color:var(--ink-soft);}
+  .field input,.field textarea{
+    width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:14px;
+    outline:none;font-family:inherit;resize:vertical;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--green-500);}
+  .field textarea{min-height:130px;line-height:1.6;font-size:13.5px;}
+  .modal-foot{display:flex;gap:8px;margin-top:8px;}
+  .modal-foot .btn{flex:1;justify-content:center;padding:13px;}
+  .hint{font-size:12px;color:var(--ink-soft);background:var(--green-100);border-radius:10px;padding:10px 12px;line-height:1.55;margin-bottom:14px;}
+  .hint code{background:rgba(15,61,46,.1);padding:1px 5px;border-radius:5px;font-size:11.5px;}
+
+  .toast{
+    position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--green-900);color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:600;
+    opacity:0;pointer-events:none;transition:all .25s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <div class="brand">제주시농협 · 임원 국내연수</div>
+    <input class="title-edit" id="trainTitle" placeholder="연수명을 입력하세요" value="2026년 임원 국내연수">
+    <div class="meta-row">
+      <div class="meta-field">
+        <label>일자</label>
+        <input type="date" id="trainDate">
+      </div>
+      <div class="meta-field">
+        <label>장소</label>
+        <input type="text" id="trainPlace" placeholder="예) 부산 연수원">
+      </div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat t-all"><div class="num" id="cAll">0</div><div class="lbl">총원</div></div>
+    <div class="stat t-present"><div class="num" id="cPresent">0</div><div class="lbl">출석</div></div>
+    <div class="stat t-late"><div class="num" id="cLate">0</div><div class="lbl">지각</div></div>
+    <div class="stat t-absent"><div class="num" id="cAbsent">0</div><div class="lbl">결석</div></div>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="search" placeholder="이름·직책 검색">
+    </div>
+    <button class="btn" id="btnBulk">📋 명단 일괄입력</button>
+    <button class="btn primary" id="btnAdd">＋ 추가</button>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<div class="actionbar">
+  <div class="inner">
+    <button class="btn" id="btnAllPresent">✅ 전체 출석</button>
+    <button class="btn" id="btnReset">↺ 체크 초기화</button>
+    <button class="btn primary" id="btnExport">⬇ 결과 내보내기(CSV)</button>
+  </div>
+</div>
+
+<!-- Add / Edit modal -->
+<div class="mask" id="maskAdd">
+  <div class="modal">
+    <h3 id="addTitle">참석자 추가</h3>
+    <p class="desc">직책과 소속은 비워두어도 됩니다.</p>
+    <div class="field"><label>이름 *</label><input id="fName" placeholder="홍길동"></div>
+    <div class="field"><label>직책</label><input id="fRole" placeholder="예) 이사 / 감사 / 조합장"></div>
+    <div class="field"><label>소속 / 비고</label><input id="fOrg" placeholder="예) 〇〇지점"></div>
+    <div class="modal-foot">
+      <button class="btn" id="addCancel">취소</button>
+      <button class="btn primary" id="addSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk modal -->
+<div class="mask" id="maskBulk">
+  <div class="modal">
+    <h3>명단 일괄입력</h3>
+    <div class="hint">
+      한 줄에 한 명씩 입력합니다. 엑셀에서 복사해 붙여넣을 수 있습니다.<br>
+      구분자는 쉼표 또는 탭이며 순서는 <code>이름, 직책, 소속</code> 입니다.<br>
+      예) <code>홍길동, 조합장</code> / <code>김철수, 이사, 동부지점</code>
+    </div>
+    <div class="field">
+      <label>붙여넣기</label>
+      <textarea id="bulkText" placeholder="홍길동, 조합장&#10;김철수, 이사, 동부지점&#10;이영희, 감사"></textarea>
+    </div>
+    <div class="field" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="bulkReplace" style="width:auto;">
+      <label for="bulkReplace" style="margin:0;">기존 명단을 모두 지우고 새로 등록</label>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="bulkCancel">취소</button>
+      <button class="btn primary" id="bulkSave">등록</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY = 'jejunh_attendance_v1';
+const STATUS = { NONE:'none', PRESENT:'present', LATE:'late', ABSENT:'absent' };
+
+let state = {
+  title:'2026년 임원 국내연수',
+  date:'',
+  place:'',
+  people:[]   // {id, name, role, org, status}
+};
+
+/* ---------- storage ---------- */
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ /* file:// 등 저장 불가 환경에서는 메모리로만 동작 */ }
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ state = Object.assign(state, JSON.parse(raw)); return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function initials(name){ return (name||'').trim().slice(0,1) || '·'; }
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1700);
+}
+function todayStr(){
+  const d=new Date(); const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+
+/* ---------- render ---------- */
+function render(){
+  const q = $('#search').value.trim().toLowerCase();
+  const list = $('#list'); list.innerHTML='';
+
+  const filtered = state.people.filter(p=>{
+    if(!q) return true;
+    return (p.name||'').toLowerCase().includes(q) || (p.role||'').toLowerCase().includes(q);
+  });
+
+  if(state.people.length===0){
+    list.innerHTML = `<div class="empty"><div class="big">📝</div>
+      <p><b>등록된 참석자가 없습니다.</b></p>
+      <p>우측 상단 <b>＋추가</b> 또는 <b>명단 일괄입력</b>으로 시작하세요.</p></div>`;
+  } else if(filtered.length===0){
+    list.innerHTML = `<div class="empty"><div class="big">🔍</div><p>검색 결과가 없습니다.</p></div>`;
+  } else {
+    filtered.forEach(p=>{
+      const el=document.createElement('div');
+      el.className='person s-'+(p.status||'none');
+      const sub=[];
+      if(p.role) sub.push(`<span class="ptag">${esc(p.role)}</span>`);
+      if(p.org)  sub.push(`<span>${esc(p.org)}</span>`);
+      el.innerHTML=`
+        <div class="avatar">${esc(initials(p.name))}</div>
+        <div class="pinfo">
+          <div class="pname">${esc(p.name)}</div>
+          ${sub.length?`<div class="psub">${sub.join('')}</div>`:''}
+        </div>
+        <div class="seg">
+          <button class="p ${p.status==='present'?'on p':''}" data-id="${p.id}" data-s="present"><span class="ico">✓</span>출석</button>
+          <button class="l ${p.status==='late'?'on l':''}" data-id="${p.id}" data-s="late"><span class="ico">◔</span>지각</button>
+          <button class="a ${p.status==='absent'?'on a':''}" data-id="${p.id}" data-s="absent"><span class="ico">✕</span>결석</button>
+        </div>
+        <button class="row-del" data-del="${p.id}" title="삭제">🗑</button>`;
+      list.appendChild(el);
+    });
+  }
+  // counts
+  const c={present:0,late:0,absent:0};
+  state.people.forEach(p=>{ if(c[p.status]!==undefined)c[p.status]++; });
+  $('#cAll').textContent=state.people.length;
+  $('#cPresent').textContent=c.present;
+  $('#cLate').textContent=c.late;
+  $('#cAbsent').textContent=c.absent;
+  const done=c.present+c.late+c.absent;
+  $('#bar').style.width=(state.people.length? (done/state.people.length*100):0)+'%';
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+/* ---------- events: status & delete (delegated) ---------- */
+$('#list').addEventListener('click', e=>{
+  const seg=e.target.closest('.seg button');
+  if(seg){
+    const id=seg.dataset.id, s=seg.dataset.s;
+    const p=state.people.find(x=>x.id===id);
+    if(p){ p.status = (p.status===s? 'none' : s); save(); render(); }
+    return;
+  }
+  const del=e.target.closest('[data-del]');
+  if(del){
+    const p=state.people.find(x=>x.id===del.dataset.del);
+    if(p && confirm(`'${p.name}' 님을 명단에서 삭제하시겠습니까?`)){
+      state.people=state.people.filter(x=>x.id!==del.dataset.del); save(); render();
+    }
+  }
+});
+
+/* ---------- meta inputs ---------- */
+$('#trainTitle').addEventListener('input', e=>{ state.title=e.target.value; save(); });
+$('#trainDate').addEventListener('change', e=>{ state.date=e.target.value; save(); });
+$('#trainPlace').addEventListener('input', e=>{ state.place=e.target.value; save(); });
+$('#search').addEventListener('input', render);
+
+/* ---------- add modal ---------- */
+function openMask(id){ $(id).classList.add('open'); }
+function closeMask(id){ $(id).classList.remove('open'); }
+$('#btnAdd').addEventListener('click', ()=>{
+  $('#fName').value=''; $('#fRole').value=''; $('#fOrg').value='';
+  openMask('#maskAdd'); setTimeout(()=>$('#fName').focus(),100);
+});
+$('#addCancel').addEventListener('click', ()=>closeMask('#maskAdd'));
+$('#addSave').addEventListener('click', ()=>{
+  const name=$('#fName').value.trim();
+  if(!name){ toast('이름을 입력하세요'); $('#fName').focus(); return; }
+  state.people.push({id:uid(),name,role:$('#fRole').value.trim(),org:$('#fOrg').value.trim(),status:'none'});
+  save(); render(); closeMask('#maskAdd'); toast('추가되었습니다');
+});
+$('#fOrg').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#addSave').click(); });
+
+/* ---------- bulk modal ---------- */
+$('#btnBulk').addEventListener('click', ()=>{ $('#bulkText').value=''; $('#bulkReplace').checked=false; openMask('#maskBulk'); });
+$('#bulkCancel').addEventListener('click', ()=>closeMask('#maskBulk'));
+$('#bulkSave').addEventListener('click', ()=>{
+  const lines=$('#bulkText').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(lines.length===0){ toast('입력된 내용이 없습니다'); return; }
+  const added=lines.map(line=>{
+    const cols=line.split(/\t|,/).map(c=>c.trim());
+    return {id:uid(),name:cols[0]||'',role:cols[1]||'',org:cols[2]||'',status:'none'};
+  }).filter(p=>p.name);
+  if($('#bulkReplace').checked) state.people=[];
+  state.people=state.people.concat(added);
+  save(); render(); closeMask('#maskBulk'); toast(added.length+'명이 등록되었습니다');
+});
+
+/* ---------- bottom actions ---------- */
+$('#btnAllPresent').addEventListener('click', ()=>{
+  if(state.people.length===0){ toast('명단이 비어 있습니다'); return; }
+  if(confirm('전원을 출석으로 표시하시겠습니까? (이후 결석·지각자만 개별 변경)')){
+    state.people.forEach(p=>p.status='present'); save(); render(); toast('전원 출석 처리');
+  }
+});
+$('#btnReset').addEventListener('click', ()=>{
+  if(confirm('모든 출석 체크를 미확인 상태로 초기화하시겠습니까? (명단은 유지)')){
+    state.people.forEach(p=>p.status='none'); save(); render(); toast('초기화되었습니다');
+  }
+});
+$('#btnExport').addEventListener('click', exportCSV);
+
+function statusLabel(s){ return {present:'출석',late:'지각',absent:'결석',none:'미확인'}[s]||'미확인'; }
+function exportCSV(){
+  if(state.people.length===0){ toast('내보낼 명단이 없습니다'); return; }
+  const head=['연번','직책','이름','소속/비고','출석상태'];
+  const rows=state.people.map((p,i)=>[i+1,p.role||'',p.name||'',p.org||'',statusLabel(p.status)]);
+  const c={present:0,late:0,absent:0,none:0};
+  state.people.forEach(p=>c[p.status||'none']++);
+  const info=[
+    ['연수명',state.title||''],
+    ['일자',state.date||''],
+    ['장소',state.place||''],
+    ['총원',state.people.length,'출석',c.present,'지각',c.late,'결석',c.absent,'미확인',c.none],
+    []
+  ];
+  const all=[...info,head,...rows];
+  const csv='\uFEFF'+all.map(r=>r.map(cell=>{
+    const v=String(cell??'');
+    return /[",\n]/.test(v)? '"'+v.replace(/"/g,'""')+'"' : v;
+  }).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const fname=(state.title||'출석부').replace(/[\\/:*?"<>|]/g,'_')+'_'+(state.date||todayStr())+'.csv';
+  a.href=url; a.download=fname; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('CSV 파일이 저장되었습니다');
+}
+
+/* close modal on backdrop click */
+document.querySelectorAll('.mask').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+/* ---------- init ---------- */
+(function init(){
+  const had=load();
+  if(!had){
+    // 최초 실행 샘플 (자유롭게 삭제/수정 가능)
+    state.date=todayStr();
+    state.people=[
+      {id:uid(),name:'조합장',role:'조합장',org:'',status:'none'},
+      {id:uid(),name:'상임이사',role:'상임이사',org:'',status:'none'},
+      {id:uid(),name:'홍길동',role:'이사',org:'동부지점',status:'none'},
+      {id:uid(),name:'김철수',role:'이사',org:'서부지점',status:'none'},
+      {id:uid(),name:'이영희',role:'감사',org:'',status:'none'}
+    ];
+    save();
+  }
+  $('#trainTitle').value=state.title||'';
+  $('#trainDate').value=state.date||todayStr();
+  $('#trainPlace').value=state.place||'';
+  render();
+})();
+</script>
+</body>
+</html>
